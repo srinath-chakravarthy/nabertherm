@@ -145,6 +145,30 @@ class Nabertherm(threading.Thread):
         p = self.furnace_programs[program_number]
         p.read_program(p.program_number, self)
 
+    def read_temerature(self):
+        temperature = self.client.read_holding_registers(address=100, count=1)
+        return float(temperature)/10.0
+
+    def read_program_number(self):
+        pno = self.client.read_holding_registers(address=126, count=1)
+        return pno
+
+    def read_segment_number(self):
+        return self.client.read_holding_registers(address=127, count=1)
+
+    def read_set_value_temperature(self):
+        temperature = self.client.read_holding_registers(address=111, count=1)
+        return float(temperature)/10.0
+
+    def read_remaining_time(self):
+        res = self.client.read_holding_registers(address=128, count=2) 
+        decoder = BinaryPayloadDecoder(res.registers, byteorder=Endian.Little, wordorder=Ending.Little)
+        time = decoder.decode_32bit_int # value in minutes
+
+    def start_internal_program(self, program_number, segment_number=1):
+        res = self.client.write_registers(address=148, values=(1,program_number,segment_number))
+
+
 # TODO
 class Nabertherm_program:
     """
